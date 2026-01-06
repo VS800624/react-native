@@ -12,6 +12,7 @@ import {
   Pressable,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 const logoImg = require("../assets/images/react-logo.png");
 
 export default function Index() {
