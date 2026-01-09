@@ -10,10 +10,12 @@ import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { Trash2, Check } from "lucide-react-native";
+import "./global.css"
 
 export default function App() {
   const [todo, setTodo] = useState("");
   const [todoList, setTodoList] = useState([]);
+  const [editingId, setEditingId] = useState(null)
 
   // Save Todos to Storage
   const saveTodos = async(todoList) => {
@@ -49,16 +51,24 @@ export default function App() {
     // If the input is empty or contains only spaces, stop the function immediately.
     if (!todo.trim()) return;
 
-    // This code adds a new todo object to the existing todo list state using the spread operator while keeping state immutable.
-    setTodoList([
-      ...todoList,
-      {
-        id: Date.now(),
-        text: todo,
-        done: false,
-      },
-    ]);
-
+    // Updating the todo (EDIT LOGIC)
+    if(editingId){
+      setTodoList(todoList.map((item) => {
+        return item.id === editingId ? {...item, text: todo} : item
+      }))
+      setEditingId(null)
+    }
+    else {
+      // This code adds a new todo object to the existing todo list state using the spread operator while keeping state immutable.
+      setTodoList([
+        ...todoList,
+        {
+          id: Date.now(),
+          text: todo,
+          done: false,
+        },
+      ]);
+    }
     setTodo("");
   };
 
@@ -76,10 +86,16 @@ export default function App() {
     setTodoList(todoList.filter((item) => item.id !== id));
   };
 
+  // It prepares the app to edit an existing todo
+  const editTodo = (item) => {
+    setTodo(item.text)
+    setEditingId(item.id)
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <Text style={styles.title}>My Todo App</Text>
+      <Text style={styles.title} className="text-red-600">My Todo App</Text>
 
       {/* Input + Button */}
       <View style={styles.inputContainer}>
@@ -114,6 +130,9 @@ export default function App() {
 
               <Pressable onPress={() => deleteTodo(item.id)}>
                 <Text style={styles.deleteText}>❌</Text>
+              </Pressable>
+              <Pressable onPress={() => editTodo(item)}>
+                <Text style={{ fontSize: 18}}>✏️</Text>
               </Pressable>
             </View>
           );
@@ -175,5 +194,6 @@ const styles = StyleSheet.create({
   deleteText: {
     fontSize: 18,
     marginLeft: 10,
+    marginRight: 10,
   },
 });
