@@ -1,5 +1,5 @@
 import { Text, View } from "react-native";
-import "./global.css"
+import ".././global.css"
 import { Link } from "expo-router";
 
 export default function Home() {
