@@ -15,6 +15,7 @@ export default function Home() {
       <Link href="/about">About</Link>
       <Link href="/profile/index">Profile</Link>
       <Link href="/products">Products</Link>
+      <Link href="/missing-routes">Missing Routes</Link>
     </View>
   );
 }
