@@ -6,7 +6,13 @@ const index = () => {
   return (
     <View style={styles.container}>
       <Text>Products</Text>
-      <Link href="/products/1">Product 1</Link>
+      {/* <Link href="/products/1">Product 1</Link> */}
+      <Link href="./1" relativeToDirectory>Product 1</Link>
+      {/*relativeToDirectory tells Expo Router from which folder the path should be resolved. 
+      By default, href is treated as an absolute path (starting from /app).
+      relativeToDirectory lets you say: Resolve this path relative to my current folder, not from root.
+      relativeToDirectory tells Expo Router to resolve the link path relative to the current folder instead of the app root.*/}
+      
       <Link href="/products/2">Product 2</Link>
       <Link href="/products/3">Product 3</Link>
 
