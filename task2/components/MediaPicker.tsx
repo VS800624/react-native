@@ -1,15 +1,14 @@
 import { View, Text, Image, Button, StyleSheet, StatusBar } from 'react-native'
 import React, { useState } from 'react'
 import * as ImagePicker from "expo-image-picker";
+import { PickedMedia } from '@/types/media';
+import { uploadToSupabase } from '@/services/uploadService';
 
-export type PickedMedia = {
-  uri: string;
-  type: "image" | "video";
-}
 
 const MediaPicker = () => {
 
   const [media, setMedia] = useState<PickedMedia | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
 
   const pickMedia = async() => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -24,6 +23,19 @@ const MediaPicker = () => {
       })
     }
   }
+
+  const handleUpload = async() => {
+    if(!media) return
+
+    setLoading(true)
+    try{
+      const url = await uploadToSupabase(media)
+      console.log("Uploaded URL:", url);
+    } catch(err){
+      console.log("Upload error", err);
+    }
+    setLoading(false)
+  } 
   
    return (
     <View style={{ padding: 20 }}>
@@ -33,6 +45,15 @@ const MediaPicker = () => {
         <Image
           source={{ uri: media.uri }}
           style={{ width: 200, height: 200, marginTop: 20 }}
+        />
+      )}
+
+       {/* UPLOAD BUTTON */}
+      {media && (
+        <Button
+          title={loading ? "Uploading..." : "Upload to Supabase"}
+          onPress={handleUpload}
+          disabled={loading}
         />
       )}
     </View>
