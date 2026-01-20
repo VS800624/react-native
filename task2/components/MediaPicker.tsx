@@ -1,54 +1,60 @@
-import { View, Text, Image, Button, StyleSheet, StatusBar } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, Image, Button, StyleSheet, StatusBar } from "react-native";
+import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
-import { PickedMedia } from '@/types/media';
-import { uploadToSupabase } from '@/services/uploadService';
-
+import { PickedMedia } from "@/types/media";
+import { uploadToSupabase } from "@/services/uploadService";
 
 const MediaPicker = () => {
+  const [media, setMedia] = useState<PickedMedia | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const [media, setMedia] = useState<PickedMedia | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-
-  const pickMedia = async() => {
+  const pickMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'], //images + videos
+      // Opens phone gallery
+      mediaTypes: ["images", "videos"], //images + videos
+      // mediaTypes: ImagePicker.MediaTypeOptions.All,
       quality: 1,
-    })
+    });
 
-    if(!result.canceled){
+    if (!result.canceled) {
       setMedia({
         uri: result.assets[0].uri,
-        type: result.assets[0].type as "video" | "image"
-      })
+        type: result.assets[0].type as "video" | "image",
+        fileName: result.assets[0].fileName ?? `${Date.now()}`,
+        mimeType: result.assets[0].mimeType!,
+      });
     }
-  }
+  };
 
-  const handleUpload = async() => {
-    if(!media) return
+  const handleUpload = async () => {
+    if (!media) return;
 
-    setLoading(true)
-    try{
-      const url = await uploadToSupabase(media)
+    setLoading(true);
+    try {
+      const url = await uploadToSupabase(media); // Send media to Supabase
       console.log("Uploaded URL:", url);
-    } catch(err){
+    } catch (err) {
       console.log("Upload error", err);
     }
-    setLoading(false)
-  } 
-  
-   return (
+    setLoading(false);
+  };
+
+  return (
     <View style={{ padding: 20 }}>
+      {/* Button to open gallery */}
       <Button title="Pick Image / Video" onPress={pickMedia} />
 
+      {/* Show preview only if media is image */}
       {media?.type === "image" && (
+        // Display selected image
         <Image
           source={{ uri: media.uri }}
-          style={{ width: 200, height: 200, marginTop: 20 }}
+          style={{ width: 200, height: 200, marginTop: 20,  }}
+          resizeMode="cover"
         />
       )}
 
-       {/* UPLOAD BUTTON */}
+      {/* UPLOAD BUTTON */}
       {media && (
         <Button
           title={loading ? "Uploading..." : "Upload to Supabase"}
@@ -58,9 +64,9 @@ const MediaPicker = () => {
       )}
     </View>
   );
-}
+};
 
-export default MediaPicker
+export default MediaPicker;
 
 const styles = StyleSheet.create({
   container: {
@@ -71,7 +77,6 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight,
   },
 });
-
 
 // result will look like this
 // {
