@@ -3,10 +3,15 @@ import React, { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { PickedMedia } from "@/types/media";
 import { uploadToSupabase } from "@/services/uploadService";
+import * as FileSystem from "expo-file-system";
+import { supabase } from "@/supabase/client";
 
 const MediaPicker = () => {
   const [media, setMedia] = useState<PickedMedia | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+ 
+
 
   const pickMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -15,6 +20,12 @@ const MediaPicker = () => {
       // mediaTypes: ImagePicker.MediaTypeOptions.All,
       quality: 1,
     });
+
+     const { data } = await supabase.auth.getSession();
+console.log("SESSION:", data);
+
+await fetch("https://google.com");
+
 
     if (!result.canceled) {
       setMedia({

@@ -4,7 +4,7 @@ import { uriToBlob } from "@/utils/helper";
 
 // Receives selected media
 export const uploadToSupabase = async (media: PickedMedia) => {
-  const blob = await uriToBlob(media.uri)
+  const blob = await uriToBlob(media.uri, media.mimeType)
   // Convert local file to Blob, Supabase needs Blob, not URI
   // A Blob simply means big binary data.
   // Blob in Supabase is binary file data (like images or videos) stored in Supabase Storage buckets instead of database tables.
