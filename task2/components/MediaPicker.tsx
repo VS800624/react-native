@@ -1,5 +1,5 @@
 import { View, Text, Image, Button, StyleSheet, StatusBar } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { PickedMedia } from "@/types/media";
 import { uploadToSupabase } from "@/services/uploadService";
@@ -10,9 +10,25 @@ const MediaPicker = () => {
   const [media, setMedia] = useState<PickedMedia | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
- 
 
+  useEffect(() => {
+    const signIn = async() => {
+      // const { data, error } = await supabase.auth.signInAnonymously();
 
+      const { data, error } = await supabase.auth.signInWithPassword({
+      email: "test@gmail.com",
+      password: "password123",
+    });
+
+      if(error){
+        console.log("Auth error: ", error)
+      } else {
+        console.log("Login Data: ", data.session)
+      }
+    }
+    signIn()
+  }, [])
+  
   const pickMedia = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       // Opens phone gallery
@@ -22,7 +38,8 @@ const MediaPicker = () => {
     });
 
      const { data } = await supabase.auth.getSession();
-console.log("SESSION:", data);
+      console.log("SESSION:", data);
+
 
 await fetch("https://google.com");
 

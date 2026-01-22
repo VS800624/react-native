@@ -1,37 +1,61 @@
+// import { uriToBlob } from "@/utils/helper";
 import { supabase } from "@/supabase/client";
 import { PickedMedia } from "@/types/media";
-import { uriToBlob } from "@/utils/helper";
 
-// Receives selected media
 export const uploadToSupabase = async (media: PickedMedia) => {
-  const blob = await uriToBlob(media.uri, media.mimeType)
-  // Convert local file to Blob, Supabase needs Blob, not URI
-  // A Blob simply means big binary data.
-  // Blob in Supabase is binary file data (like images or videos) stored in Supabase Storage buckets instead of database tables.
+  // Get session
+  const { data: sessionData } = await supabase.auth.getSession();
 
-  // Decide file extension
-  const fileExt = media.type === "image" ? "jpg" : "mp4"
-  // Create unique filename using timestamp
-  const fileName = `${Date.now()}.${fileExt}`
+  if (!sessionData.session) {
+    throw new Error("User not authenticated");
+  }
 
-  // Upload file to media bucket
-  const {error} = await supabase.storage
-    .from("media")
-    .upload(fileName, blob, {
-      contentType: 
-      // media.type === "image" ? "image/jpeg" : "video/mp4",
-       media.mimeType,
-      // Tell Supabase what type of file it is
-      // upsert: true,
-    })
+  // Extracts the JWT access token, this token proves the user is logged in, we will send this token while uploading the file
+  const accessToken = sessionData.session.access_token;
 
-    if (error) throw error
+  //  Prepare file
+  const fileExt = media.type === "image" ? "jpg" : "mp4";
+  const fileName = `${Date.now()}.${fileExt}`;
 
-    // Generate public access URL
-    const {data} = supabase.storage
-      .from("media")
-      .getPublicUrl(fileName)
+  // FormData is a JavaScript object used to send data (especially files) from your app to a server using HTTP requests.
+  // FormData is used to send files and form values to a server in multipart/form-data format.
+  const formData = new FormData();
+  // Adds a file to the form, "file" is the required key name for Supabase storage
+  formData.append("file", {
+    uri: media.uri,
+    name: fileName,
+    type:
+      media.mimeType ??
+      (media.type === "image" ? "image/jpeg" : "video/mp4"),
+  } as any);
 
-      // Return URL to UI
-  return data.publicUrl
-}
+  //  Upload using USER JWT (IMPORTANT)
+  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
+
+  // Upload file to Supabase Storage
+  const res = await fetch(
+    `${supabaseUrl}/storage/v1/object/media/${fileName}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // FIX
+      },
+      body: formData,
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text);
+  }
+
+  //  Return public URL
+  return `${supabaseUrl}/storage/v1/object/public/media/${fileName}`;
+};
+
+
+// | Part                | Meaning                     |
+// | ------------------- | --------------------------- |
+// | `storage/v1/object` | Supabase Storage upload API |
+// | `media`             | **Bucket name**             |
+// | `${fileName}`       | File name inside the bucket |
