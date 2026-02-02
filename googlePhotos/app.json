@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "googlePhotos",
+    "slug": "googlePhotos",
+    "version": "1.0.0",
+
+    "scheme": "googlePhotos",
+
+    "platforms": ["ios", "android", "web"],
+
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+
+    "plugins": [
+      "expo-router",
+       [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "audioPermission": "Allow $(PRODUCT_NAME) to access audio files.",
+          "granularPermissions": ["photo", "video", "audio"],
+          "isAccessMediaLocationEnabled": true
+        }
+      ]
+    ],
+
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+
+    "userInterfaceStyle": "light",
+
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+
+    "assetBundlePatterns": ["**/*"],
+
+    "ios": {
+      "supportsTablet": true
+    },
+
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    }
+  }
+}
