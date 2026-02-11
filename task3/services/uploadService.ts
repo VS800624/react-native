@@ -56,52 +56,44 @@ import { PickedMedia } from "@/types/media";
 // };
 
 export const uploadToSupabase = async (media: PickedMedia) => {
+  // 1. Get session
   const { data: sessionData } = await supabase.auth.getSession();
+
   if (!sessionData.session) {
     throw new Error("User not authenticated");
   }
 
-  const accessToken = sessionData.session.access_token;
+  // 2. Convert URI → Blob
+  const response = await fetch(media.uri);
+  const blob = await response.blob();
 
-  // 1) File extension
+  // 3. File info
   const fileExt = media.type === "image" ? "jpg" : "mp4";
   const fileName = `${Date.now()}.${fileExt}`;
 
-  // 2) FOLDER LOGIC 
-  const folder =
-    media.type === "image" ? "images" : "videos";
-
+  const folder = media.type === "image" ? "images" : "videos";
   const filePath = `${folder}/${fileName}`;
 
-  // 3) FormData
-  const formData = new FormData();
-  formData.append("file", {
-    uri: media.uri,
-    name: fileName,
-    type:
-      media.mimeType ??
-      (media.type === "image" ? "image/jpeg" : "video/mp4"),
-  } as any);
+  // 4. Upload using Supabase SDK
+  const { data, error } = await supabase.storage
+    .from("media")
+    .upload(filePath, blob, {
+      contentType:
+        media.mimeType ??
+        (media.type === "image" ? "image/jpeg" : "video/mp4"),
+      upsert: false,
+    });
 
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
-
-  // 4) Upload to SUPABASE (NOT LOCAL)
-  const res = await fetch(
-    `${supabaseUrl}/storage/v1/object/media/${filePath}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: formData,
-    }
-  );
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text);
+  if (error) {
+    console.log("UPLOAD ERROR:", error);
+    throw error;
   }
 
-  // 5) Public URL
-  return `${supabaseUrl}/storage/v1/object/public/media/${filePath}`;
+  // 5. Get public URL
+  const { data: publicUrl } = supabase.storage
+    .from("media")
+    .getPublicUrl(filePath);
+
+  return publicUrl.publicUrl;
 };
+

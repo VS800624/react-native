@@ -18,7 +18,7 @@ export default function PreviewScreen() {
           source={{ uri: fileUrl }}
           style={{ width: "100%", height: 300 }}
           useNativeControls
-          
+          shouldPlay={true}
         />
       ) : (
         <Image

@@ -1,4 +1,4 @@
-import { View, Image, Button, Pressable } from "react-native";
+import { View, Text, Image, Pressable, FlatList } from "react-native";
 import { useEffect, useState } from "react";
 import { listFiles } from "@/services/storageService";
 import { router } from "expo-router";
@@ -9,66 +9,113 @@ const BUCKET = "media";
 const folders = ["images", "videos"];
 
 export default function DriveScreen() {
-  // 1) STATE (WRITE THIS HERE)
   const [files, setFiles] = useState<any[]>([]);
   const [currentFolder, setCurrentFolder] = useState("images");
 
-  // 2) LOAD FILES WHEN FOLDER CHANGES
   useEffect(() => {
     loadFolder(currentFolder);
   }, [currentFolder]);
 
-  // 3) LOAD FOLDER FUNCTION (WRITE THIS HERE)
   const loadFolder = async (folder: string) => {
     const data = await listFiles(folder);
-    console.log("FILES FROM SUPABASE:", data);
     setFiles(data);
   };
 
-
-  // 4) UI
   return (
-    <View style={{ flex: 1, padding: 10 }}>
-      {/* Folder buttons */}
-      <View style={{ flexDirection: "row", marginBottom: 10 }}>
-        {folders.map((folder) => (
-          <Button
-            key={folder}
-            title={folder}
-            onPress={() => setCurrentFolder(folder)}
-          />
-        ))}
+    <View style={{ flex: 1, backgroundColor: "#F8F9FA" }}>
+      
+      {/* Header */}
+      <View
+        style={{
+          padding: 16,
+          backgroundColor: "#fff",
+          borderBottomWidth: 1,
+          borderColor: "#ddd",
+        }}
+      >
+        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Drive</Text>
+
+        {/* Tabs */}
+        <View style={{ flexDirection: "row", marginTop: 12 }}>
+          {folders.map((folder) => (
+            <Pressable
+              key={folder}
+              onPress={() => setCurrentFolder(folder)}
+              style={{
+                paddingVertical: 6,
+                paddingHorizontal: 16,
+                borderRadius: 20,
+                marginRight: 10,
+                backgroundColor:
+                  currentFolder === folder ? "#1A73E8" : "#E8F0FE",
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    currentFolder === folder ? "#fff" : "#1A73E8",
+                  fontWeight: "600",
+                }}
+              >
+                {folder.toUpperCase()}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
 
-      {/* Files grid */}
-      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-        {files.map((file) => (
+      {/* Files Grid */}
+      <FlatList
+        data={files}
+        numColumns={3}
+        keyExtractor={(item) => item.name}
+        contentContainerStyle={{ padding: 12 }}
+        renderItem={({ item }) => (
           <Pressable
-            key={file.name}
-            onPress={() => {
+            onPress={() =>
               router.push({
                 pathname: "/preview",
                 params: {
-                  name: file.name,
+                  name: item.name,
                   folder: currentFolder,
                 },
-              });
+              })
+            }
+            style={{
+              flex: 1,
+              margin: 6,
+              backgroundColor: "#fff",
+              borderRadius: 10,
+              padding: 6,
+              elevation: 2,
             }}
           >
             <Image
               source={{
-                uri: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${currentFolder}/${file.name}`,
+                uri: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${currentFolder}/${item.name}`,
               }}
               style={{
-                width: 100,
+                width: "100%",
                 height: 100,
-                margin: 8,
-                borderRadius: 10,
+                borderRadius: 6,
               }}
+              resizeMode="contain"
             />
+
+            {/* File Name */}
+            <Text
+              numberOfLines={1}
+              style={{
+                marginTop: 6,
+                fontSize: 12,
+                color: "#333",
+              }}
+            >
+              {item.name}
+            </Text>
           </Pressable>
-        ))}
-      </View>
+        )}
+      />
     </View>
   );
 }

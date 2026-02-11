@@ -5,6 +5,7 @@ import { PickedMedia } from "@/types/media";
 import { uploadToSupabase } from "@/services/uploadService";
 import * as FileSystem from "expo-file-system";
 import { supabase } from "@/supabase/client";
+import { ResizeMode, Video } from "expo-av";
 
 const MediaPicker = () => {
   const [media, setMedia] = useState<PickedMedia | null>(null);
@@ -67,6 +68,13 @@ const MediaPicker = () => {
     setLoading(false);
   };
 
+  useEffect(() => {
+  fetch("https://google.com")
+    .then(() => console.log("Internet OK"))
+    .catch(() => console.log("Internet Failed"));
+}, []);
+
+
   return (
     <View style={{ padding: 20 }}>
       {/* Button to open gallery */}
@@ -79,6 +87,17 @@ const MediaPicker = () => {
           source={{ uri: media.uri }}
           style={{ width: 200, height: 200, marginTop: 20,  }}
           resizeMode="cover"
+        />
+      )}
+
+      {/* Show preview only if media is video */}
+      {media?.type === "video" && (
+        <Video
+          source={{ uri: media.uri }}
+          style={{ width: 200, height: 200, marginTop: 20 }}
+          resizeMode={ResizeMode.CONTAIN}
+          useNativeControls
+          shouldPlay={false}   // So it doesn’t auto-play
         />
       )}
 
